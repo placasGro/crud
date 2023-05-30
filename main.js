@@ -80,12 +80,12 @@ function generate(){
     document.querySelector(".qr-code").style = "";
 
     qrcode = new QRCode(document.querySelector(".qr-code"), {
-        text: `${QR_URL}?placa=${placa.value} &serie=${noSerie.value}`,
-        width: 180, //128
-        height: 180,
+        text: `${QR_URL}?placa=${placa.value}&serie=${noSerie.value}`,
+        width: 90, //128
+        height: 90,
         colorDark : "#000000",
         colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+        correctLevel : QRCode.CorrectLevel.L
     });
 
     console.log(qrcode);
