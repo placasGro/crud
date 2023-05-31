@@ -19,7 +19,8 @@ document.getElementById('crossModal').addEventListener('click', () => {
 const modal = new bootstrap.Modal(document.getElementById('successModal'))
 
 const API_URL = 'https://api.guerrero-mx.com/api-create.php'
-const QR_URL = 'https://esefina-ingresos-2023.guerrero-mx.com/Tenencia/ModuloExterno'
+const QR_URL = 'http://esefina-ingresos-2023.guerrero-mx.com/Tenencia/ModuloExterno'
+let shorturl = ''
 
 const clase = document.getElementById('clase')
 const placa = document.getElementById('placa')
@@ -41,6 +42,29 @@ async function saveAlumno() {
     
 }
 
+async function fetchShortUrl() {
+    const largeurl = `${QR_URL}?placa=${placa.value}&serie=${noSerie.value}`
+    console.log(largeurl);
+    const URL = `https://guerrero-mx.com/yourls-api.php?` + new URLSearchParams({
+        signature: 'caed1384a5',
+        action: 'shorturl',
+        format: 'json',
+        url: largeurl
+    })
+
+    console.log(URL);
+
+    await fetch(URL, { 
+        method: 'POST',
+    })
+    .then(response => response.json()).then(r => {
+        console.log(r);
+        shorturl = r.shorturl
+    })
+
+    generate()   
+}
+
 async function fetchPOST(body = '') {
     let status = false
     await fetch(API_URL, {
@@ -50,7 +74,7 @@ async function fetchPOST(body = '') {
     .catch(error => console.error(error))
     if (status) {
         console.log(modal);
-        generate()   
+        fetchShortUrl()
         modal.show()
         clearInputs()
     } else {
@@ -80,7 +104,7 @@ function generate(){
     document.querySelector(".qr-code").style = "";
 
     qrcode = new QRCode(document.querySelector(".qr-code"), {
-        text: `${QR_URL}?placa=${placa.value}&serie=${noSerie.value}`,
+        text: `${shorturl}`,
         width: 90, //128
         height: 90,
         colorDark : "#000000",
