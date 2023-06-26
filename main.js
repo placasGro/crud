@@ -64,10 +64,10 @@ const noSerie = document.getElementById('noSerie')
 
 async function saveAlumno() {
     if (!validate()) return alert('Todos los campos son obligatorios.'); 
-    const body = { clase: clase.value, placa: placa.value,
-    modelo: modelo.value, precioFactura: precioFactura.value,
-    noCilindros: noCilindros.value, procedencia: procedencia.value, 
-    descripcion: descripcion.value, noSerie: noSerie.value };
+    const body = { clase: clase.value.trim(), placa: placa.value.trim(),
+    modelo: modelo.value.trim(), precioFactura: precioFactura.value.trim(),
+    noCilindros: noCilindros.value.trim(), procedencia: procedencia.value.trim(), 
+    descripcion: descripcion.value.trim(), noSerie: noSerie.value.trim() };
     fetchPOST(body)    
 }
 
@@ -75,14 +75,14 @@ async function updateAlumno() {
     let status = false;
     const body = {
         id: idSearch,
-        clase: clase.value,
-        placa: placa.value,
-        modelo: modelo.value,
-        precioFactura: precioFactura.value,
-        noCilindros: noCilindros.value,
-        procedencia: procedencia.value,
-        descripcion: descripcion.value,
-        noSerie: noSerie.value
+        clase: clase.value.trim(),
+        placa: placa.value.trim(),
+        modelo: modelo.value.trim(),
+        precioFactura: precioFactura.value.trim(),
+        noCilindros: noCilindros.value.trim(),
+        procedencia: procedencia.value.trim(),
+        descripcion: descripcion.value.trim(),
+        noSerie: noSerie.value.trim()
     }
     await fetch('https://api.guerrero-mx.com/api-update.php', {
         method: 'PUT',
