@@ -101,7 +101,7 @@ async function updateAlumno() {
 }
 
 async function searchAlumno(id) {
-    const body = id !== undefined ? { id } : { placa: placa.value, noSerie: noSerie.value }
+    const body = id !== undefined ? { id } : { placa: placa.value.trim(), noSerie: noSerie.value.trim() }
     if(id === undefined) {
         searchPOST(body, true)
     } else {
