@@ -131,6 +131,10 @@ async function searchPOST(body = '', flag = false) {
         method: 'POST',
         body: JSON.stringify(body)
     }).then(res => res.json()).then(r => {
+        if(r.status !== undefined) {
+            alert('El usuario no existe. Vuelve a intentarlo.')
+            return window.location.replace('./maintance.html')
+        }
         if (!flag) {
             const user = r[0]
             clase.value = user.clase
