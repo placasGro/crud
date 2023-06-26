@@ -1,14 +1,45 @@
 import * as bootstrap from 'bootstrap';
 
+let idSearch
+
+window.onload = () => {
+    const queryString = window.location.search;
+    const urlParams = new URLSearchParams(queryString);
+    const idDelete = urlParams.get('delete')
+    idSearch = urlParams.get('edit')
+    if(urlParams.has('delete')) deletePOST(idDelete)
+    if(urlParams.has('edit')) searchAlumno(idSearch)
+}
+
 document
-.getElementById('saveBtn')
-.addEventListener('click', () => {
-    saveAlumno() 
+    .getElementById('saveBtn')
+    ?.addEventListener('click', () => {
+        saveAlumno() 
 })
 
-document.getElementById('closeModal').addEventListener('click', () => {
+document
+    .getElementById('updateBtn')
+    ?.addEventListener('click', () => {
+        updateAlumno()
+    })
+
+document
+    .getElementById('searchBtn')
+    ?.addEventListener('click', () => {
+        searchAlumno()
+    })
+
+const table = document.getElementById('tableResult')
+
+document.getElementById('closeModal')?.addEventListener('click', () => {
     modal.hide();
     document.querySelector(".qr-code").innerHTML = "";
+})
+
+document.getElementById('closeEditModal')?.addEventListener('click', () => {
+    modal.hide();
+    document.querySelector(".qr-code").innerHTML = "";
+    window.location.replace('./maintance.html')
 })
 
 document.getElementById('crossModal').addEventListener('click', () => {
@@ -37,32 +68,116 @@ async function saveAlumno() {
     modelo: modelo.value, precioFactura: precioFactura.value,
     noCilindros: noCilindros.value, procedencia: procedencia.value, 
     descripcion: descripcion.value, noSerie: noSerie.value };
-    console.log(JSON.stringify(body));
-    fetchPOST(body)
-    
+    fetchPOST(body)    
+}
+
+async function updateAlumno() {
+    let status = false;
+    const body = {
+        id: idSearch,
+        clase: clase.value,
+        placa: placa.value,
+        modelo: modelo.value,
+        precioFactura: precioFactura.value,
+        noCilindros: noCilindros.value,
+        procedencia: procedencia.value,
+        descripcion: descripcion.value,
+        noSerie: noSerie.value
+    }
+    await fetch('https://api.guerrero-mx.com/api-update.php', {
+        method: 'PUT',
+        body: JSON.stringify(body)
+    }).then(res => res.json()).then(r => {
+        status = r.status
+        alert('Usuario actualizado con éxito')
+    }).catch(error => console.error(error))
+    if (status) {
+        fetchShortUrl()
+        modal.show()
+        clearInputs()
+    } else {
+        alert('Hubo un error. Intenta nuevamente o comunicate con el administrador')
+    }
+}
+
+async function searchAlumno(id) {
+    const body = id !== undefined ? { id } : { placa: placa.value, noSerie: noSerie.value }
+    if(id === undefined) {
+        searchPOST(body, true)
+    } else {
+        searchPOST(body, false)
+    }
 }
 
 async function fetchShortUrl() {
     const largeurl = `${QR_URL}?placa=${placa.value}&serie=${noSerie.value}`
-    console.log(largeurl);
     const URL = `https://guerrero-mx.com/yourls-api.php?` + new URLSearchParams({
         signature: 'caed1384a5',
         action: 'shorturl',
         format: 'json',
         url: largeurl
     })
-
-    console.log(URL);
-
     await fetch(URL, { 
         method: 'POST',
     })
     .then(response => response.json()).then(r => {
-        console.log(r);
         shorturl = r.shorturl
     })
-
     generate()   
+}
+
+async function searchPOST(body = '', flag = false) {
+    await fetch("https://api.guerrero-mx.com/api-search.php", {
+        method: 'POST',
+        body: JSON.stringify(body)
+    }).then(res => res.json()).then(r => {
+        if (!flag) {
+            const user = r[0]
+            clase.value = user.clase
+            placa.value = user.placa
+            modelo.value = user.modelo
+            precioFactura.value = user.precioFactura
+            noCilindros.value = user.noCilindros
+            procedencia.value = user.procedencia
+            descripcion.value = user.descripcion
+            noSerie.value = user.noSerie
+            return 
+        }
+        table.innerHTML = `<thead>
+        <tr>
+          <th scope="col">No Serie</th>
+          <th scope="col">Placa</th>
+          <th scope="col">Descripción</th>
+          <th scope="col">Acciones</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${r.status === undefined ? r.map(user => `
+            <tr>
+                <td>${user.noSerie}</td>
+                <td>${user.placa}</td>
+                <td>${user.descripcion}</td>
+                <td>
+                    <button class='btn btn-primary btn-sm' onclick="window.location.replace('./edit.html?edit=${user.id}')">Editar</button>
+                    <button class='btn btn-danger btn-sm' onclick="window.location.replace('./maintance.html?delete=${user.id}')">Eliminar</button>
+                </td>
+            </tr>
+        `) : '<tr><td>Sin resultados</td></tr>'}
+      </tbody>`
+    })
+}
+
+async function deletePOST(id) {
+    const canContinue = confirm('¿Estás seguro de querer eliminar este registro?')
+    if(!canContinue) return window.location.replace('./maintance.html') 
+    //let status = false
+    const body = { id }
+    await fetch("https://api.guerrero-mx.com/api-delete.php", {
+        method: 'DELETE',
+        body: JSON.stringify(body) 
+    }).then(res => res.json()).then(r => {
+        window.location.replace('./maintance.html')
+    }).catch(error => console.error(error))
 }
 
 async function fetchPOST(body = '') {
@@ -73,7 +188,6 @@ async function fetchPOST(body = '') {
     }).then(res => res.json()).then(r => status = r.status)
     .catch(error => console.error(error))
     if (status) {
-        console.log(modal);
         fetchShortUrl()
         modal.show()
         clearInputs()
@@ -111,9 +225,6 @@ function generate(){
         colorLight : "#ffffff",
         correctLevel : QRCode.CorrectLevel.L
     });
-
-    console.log(qrcode);
-
     let download = document.createElement("button");
     document.querySelector(".qr-code").appendChild(download);
 
